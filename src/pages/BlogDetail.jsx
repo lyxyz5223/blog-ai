@@ -13,6 +13,53 @@ import { getBlogDetail, getBlogsData } from '../data/dataService'
 import { formatDateTime } from '../utils/formatDate'
 import './BlogDetail.css'
 
+// 图片加载组件 - 支持错误处理和懒加载
+function RenderImage({ src, alt, ...props }) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+
+  const handleImageError = () => {
+    console.warn(`⚠️ [图片加载失败] ${src}`);
+    setImageError(true)
+    setImageLoading(false)
+  }
+
+  const handleImageLoad = () => {
+    console.log(`✅ [图片加载成功] ${src}`);
+    setImageLoading(false)
+  }
+
+  if (imageError) {
+    return (
+      <div className="markdown-img-error">
+        <div className="error-placeholder">
+          <span className="error-text">图片加载失败</span>
+          <a href={src} target="_blank" rel="noopener noreferrer" className="error-link">
+            点击在新标签页打开
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="markdown-img-wrapper">
+      {imageLoading && <div className="image-loading">加载中...</div>}
+      <img
+        src={src}
+        alt={alt || '图片'}
+        className="markdown-img"
+        loading="lazy"
+        onError={handleImageError}
+        onLoad={handleImageLoad}
+        crossOrigin="anonymous"
+        referrerPolicy="no-referrer"
+        {...props}
+      />
+    </div>
+  )
+}
+
 function BlogDetail({ blogId }) {
   const navigate = useNavigate()
   const [blog, setBlog] = useState(null)
@@ -107,7 +154,20 @@ function BlogDetail({ blogId }) {
     h4: ({ children }) => <h4 className="markdown-h4">{children}</h4>,
     h5: ({ children }) => <h5 className="markdown-h5">{children}</h5>,
     h6: ({ children }) => <h6 className="markdown-h6">{children}</h6>,
-    p: ({ children }) => <p className="markdown-p">{children}</p>,
+    p: ({ children, node }) => {
+      // 检查 children 是否包含块级元素（如已经包含 <p>, <div> 等）
+      const hasBlockElements = Array.isArray(children) && children.some(child => 
+        typeof child === 'object' && child?.props && 
+        ['p', 'div', 'blockquote', 'ul', 'ol', 'table'].includes(child.type)
+      );
+      
+      // 如果 children 已经有块级元素，用 div 包裹而不是 p
+      if (hasBlockElements) {
+        return <div className="markdown-p">{children}</div>;
+      }
+      
+      return <p className="markdown-p">{children}</p>;
+    },
     blockquote: ({ children }) => <blockquote className="markdown-blockquote">{children}</blockquote>,
     ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
     ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
@@ -119,12 +179,7 @@ function BlogDetail({ blogId }) {
     th: ({ children }) => <th className="markdown-th">{children}</th>,
     td: ({ children }) => <td className="markdown-td">{children}</td>,
     img: ({ src, alt, ...props }) => (
-      <img 
-        src={src} 
-        alt={alt} 
-        className="markdown-img"
-        {...props}
-      />
+      <RenderImage src={src} alt={alt} {...props} />
     ),
     a: ({ href, children }) => (
       <a href={href} className="markdown-link" target="_blank" rel="noopener noreferrer">
