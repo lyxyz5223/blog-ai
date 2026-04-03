@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/blog-ai/',
   plugins: [react()],
   define: {
     __VITE_BUILD_TIME__: JSON.stringify(new Date().toISOString()),

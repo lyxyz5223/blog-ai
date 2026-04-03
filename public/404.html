@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found</title>
+    <script>
+      // GitHub Pages SPA routing fix
+      // Redirect to index.html for all non-existent routes
+      var pathSegmentsToKeep = 1; // Keep the /blog-ai/ segment
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' +
+        l.hostname +
+        (l.port ? ':' + l.port : '') +
+        '/blog-ai/?' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

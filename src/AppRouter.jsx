@@ -45,7 +45,7 @@ function AppRouter() {
   }
 
   return (
-    <Router>
+    <Router basename="/blog-ai/">
       <div className="app">
         <FloatingElements />
         
