@@ -13,12 +13,13 @@ if (sessionStorage.redirectPath) {
   
   // Restore the original path
   const basePath = '/blog-ai/';
-  const targetPath = redirectPath.startsWith('/') ? redirectPath : '/' + redirectPath;
+  // Remove leading slash if present to avoid double slashes when concatenating
+  const cleanPath = redirectPath.startsWith('/') ? redirectPath.slice(1) : redirectPath;
   
-  console.log(`🔄 [SPA Router] 恢复路由: ${targetPath}`);
+  console.log(`🔄 [SPA Router] 恢复路由: ${cleanPath}`);
   console.log(`   若路由不存在，将显示 NotFound 页面`);
   
-  window.history.replaceState(null, null, basePath + targetPath);
+  window.history.replaceState(null, null, basePath + cleanPath);
 }
 
 createRoot(document.getElementById('root')).render(
