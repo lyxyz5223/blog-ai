@@ -140,24 +140,20 @@ function BlogDetail({ blogId }) {
       try {
         setLoading(true)
         
-        // 确保 blogId 是数字类型（URL 参数是字符串）
-        const id = typeof blogId === 'string' ? parseInt(blogId, 10) : blogId
-        console.log(`🔍 [BlogDetail] 使用 blogId=${id} (原始: ${blogId})`)
-        
         // 使用缓存系统加载完整的文章内容
-        const currentBlog = await getBlogDetail(id)
-        console.log(`📄 [BlogDetail] 加载完整文章 ID=${id}:`, currentBlog)
+        const currentBlog = await getBlogDetail(blogId)
+        console.log(`📄 [BlogDetail] 加载完整文章 ID=${blogId}:`, currentBlog)
         
         // 获取所有文章用于导航
         const allBlogs = await getBlogsData()
-        const currentIndex = allBlogs.findIndex(b => b.id === id)
+        const currentIndex = allBlogs.findIndex(b => b.id === blogId)
         
         setBlog(currentBlog)
         setPrevBlog(currentIndex > 0 ? allBlogs[currentIndex - 1] : null)
         setNextBlog(currentIndex < allBlogs.length - 1 ? allBlogs[currentIndex + 1] : null)
         setError(null)
       } catch (err) {
-        console.error('❌ Failed to load blog:', err)
+        console.error('Failed to load blog:', err)
         setError('加载文章失败，请检查配置设置')
         setBlog(null)
       } finally {

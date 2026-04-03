@@ -235,17 +235,14 @@ export const getCategories = async () => {
  * 获取单篇博客的完整内容（懒加载）
  * ✨ 优化：详情页才加载完整内容，支持LRU缓存
  * 优先级：MD 文件（懒加载） > 本地存储 > API
- * @param {number|string} id - 博客ID（会自动转换为数字）
+ * @param {number} id - 博客ID
  * @returns {Promise<Object>} 完整的博客对象
  */
 export const getBlogDetail = async (id) => {
-  // 确保 id 是数字
-  const numId = typeof id === 'string' ? parseInt(id, 10) : id;
-  
   // 先检查缓存
-  const cached = getFromCache(numId);
+  const cached = getFromCache(id);
   if (cached) {
-    console.log(`📦 [缓存命中] 文章ID: ${numId}`);
+    console.log(`📦 [缓存命中] 文章ID: ${id}`);
     return cached;
   }
 
@@ -253,15 +250,15 @@ export const getBlogDetail = async (id) => {
     // 首先尝试从 MD 文件加载（懒加载单篇文件）
     try {
       const blogsMeta = await loadBlogsMeta();
-      const blogMeta = blogsMeta.find(b => b.id === numId);
+      const blogMeta = blogsMeta.find(b => b.id === id);
       
       if (blogMeta) {
-        console.log(`📖 [详情页] 加载文章ID: ${numId}（懒加载）`);
+        console.log(`📖 [详情页] 加载文章ID: ${id}（懒加载）`);
         // 只在需要详情时才加载内容
         const content = await loadBlogContent(blogMeta.filename);
         const blog = { ...blogMeta, content };
-        addToCache(numId, blog);
-        console.log(`💾 [缓存新增] 文章ID: ${numId}（MD文件模式）`);
+        addToCache(id, blog);
+        console.log(`💾 [缓存新增] 文章ID: ${id}（MD文件模式）`);
         return blog;
       }
     } catch (fileError) {
@@ -273,31 +270,31 @@ export const getBlogDetail = async (id) => {
     if (config.useLocalStorage) {
       // 本地模式：从本地数据查找
       const blogs = getLocalBlogsData();
-      const blog = blogs.find(b => b.id === numId);
+      const blog = blogs.find(b => b.id === id);
       
       if (blog) {
-        addToCache(numId, blog);
-        console.log(`💾 [缓存新增] 文章ID: ${numId}（本地模式）`);
+        addToCache(id, blog);
+        console.log(`💾 [缓存新增] 文章ID: ${id}（本地模式）`);
         return blog;
       }
     } else {
       // API 模式：直接通过 ID 从后端获取，不加载所有数据
       const apiEndpoint = getApiEndpoint();
-      const response = await fetch(`${apiEndpoint}/blogs/${numId}`);
+      const response = await fetch(`${apiEndpoint}/blogs/${id}`);
       
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
       
       const blog = await response.json();
-      addToCache(numId, blog);
-      console.log(`💾 [缓存新增] 文章ID: ${numId}（API数据库）`);
+      addToCache(id, blog);
+      console.log(`💾 [缓存新增] 文章ID: ${id}（API数据库）`);
       return blog;
     }
     
-    throw new Error(`文章 ID ${numId} 不存在`);
+    throw new Error(`文章 ID ${id} 不存在`);
   } catch (error) {
-    console.error('❌ [getBlogDetail] 加载失败，ID:', numId, '错误:', error);
+    console.error('❌ [getBlogDetail] 加载失败，ID:', id, '错误:', error);
     throw error;
   }
 };
