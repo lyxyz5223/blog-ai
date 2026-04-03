@@ -6,20 +6,28 @@
     <title>Page Not Found</title>
     <script>
       // GitHub Pages SPA routing fix
-      // Redirect to index.html for all non-existent routes
-      var pathSegmentsToKeep = 1; // Keep the /blog-ai/ segment
-      var l = window.location;
-      l.replace(
-        l.protocol + '//' +
-        l.hostname +
-        (l.port ? ':' + l.port : '') +
-        '/blog-ai/?' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
+      // When a route doesn't exist, GitHub Pages serves 404.html
+      // We save the original path and redirect to index.html
+      // React Router will then handle the invalid route and show NotFound page
+      
+      const path = window.location.pathname;
+      const baseUrl = '/blog-ai/';
+      
+      // Remove the base URL to get the relative path
+      const relativePath = path.startsWith(baseUrl) 
+        ? path.slice(baseUrl.length) 
+        : path;
+      
+      // Mark this as an invalid route so React can show NotFound page
+      sessionStorage.setItem('redirectPath', relativePath + (window.location.search || '') + (window.location.hash || ''));
+      
+      console.log('🔴 [404] 路由不存在，重定向到首页:', relativePath);
+      
+      // Redirect to index.html (always exists)
+      window.location.href = baseUrl;
     </script>
   </head>
   <body>
+    正在重定向...
   </body>
 </html>

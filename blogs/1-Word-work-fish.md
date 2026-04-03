@@ -24,11 +24,11 @@
 
 ## 界面设计：
 - **主窗口**：
-![image](https://img2024.cnblogs.com/blog/3496432/202512/3496432-20251221232150007-1760990218.png)
+![image](/blog-ai/blogs/1.res/1.png)
 - **设置窗口**：
-![image](https://img2024.cnblogs.com/blog/3496432/202512/3496432-20251221232306988-421202834.png)
+![image](/blog-ai/blogs/1.res/2.png)
 - **状态显示窗口**：
-![image](https://img2024.cnblogs.com/blog/3496432/202512/3496432-20251221232330169-1228628945.png)
+![image](/blog-ai/blogs/1.res/3.png)
 
 ---
 ## 设计思路与代码讲解
@@ -37,7 +37,7 @@
 首先需要包含COM相关的库：
 需要注意的是，下面代码中“导入Word库”不是一次性完成的，步骤如下：
 1. 打开电脑上的Word/WPS Office，通过任务管理器找到其安装路径，如图：
-![image](https://img2024.cnblogs.com/blog/3496432/202512/3496432-20251221233444739-887422691.png)
+![image](/blog-ai/blogs/1.res/4.png)
 2. 在相同目录下找到MSWORD.OLB文件，复制其路径，然后写入代码中，使用#import 导入：
 ```cpp
 #import "C:\\Program Files\\Microsoft Office\\root\\Office16\\MSWORD.OLB"
@@ -66,7 +66,7 @@ namespace Word {...}
 ```
 其中 **Cross-referenced type libraries:** 部分有一个/多个#import语句，直接复制粘贴到步骤2语句的上一行并去掉注释，但是不要着急立即编译，立即编译同样失败，这时候请看步骤4
 4. 回到MSWORD.tlh头文件，直接修改该头文件，编写任意内容保存再次编译即可，例如：
-![image](https://img2024.cnblogs.com/blog/3496432/202512/3496432-20251221234623687-682594929.png)
+![image](/blog-ai/blogs/1.res/5.png)
 
 至此，恭喜你完成了COM组件Word库的导入。
 完整导入代码如下，注意添加#include <atlbase.h>和#include <atlcom.h>：
