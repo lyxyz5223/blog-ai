@@ -4,6 +4,10 @@ on:
   push:
     branches: [ master ]
 
+# 权限配置
+permissions:
+  contents: write  # 允许写入内容
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
