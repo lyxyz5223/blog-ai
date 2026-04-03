@@ -1,0 +1,108 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* 日间模式配色 */
+  --primary-color: #E91E63;
+  --primary-light: #FF6B9D;
+  --primary-dark: #C2185B;
+  --secondary-color: #DA70D6;
+  --secondary-light: #F48FB1;
+  --accent-color: #00BCD4;
+  
+  --bg-color: #FAFAFA;
+  --bg-secondary: #FFFFFF66;
+  --text-color: #2C3E50;
+  --text-light: #7F8C8D;
+  --border-color: #E8E8E8;
+  --header-bg: #FFFFFF;
+  --header-text: #2C3E50;
+  --header-border: #F0F0F0;  
+  /* 透明版本背景色 */
+  --bg-color-transparent: rgba(250, 250, 250, 0.88);
+  --bg-secondary-transparent: rgba(255, 255, 255, 0.92);
+  --header-bg-transparent: rgba(255, 255, 255, 0.95);
+  
+  /* 浅透明版本（让形状可见） */
+  --bg-light: rgba(250, 250, 250, 0.4);
+  --bg-secondary-light: rgba(255, 255, 255, 0.65);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 夜间模式 */
+[data-theme="dark"] {
+  --primary-color: #FF6B9D;
+  --primary-light: #FF85B0;
+  --primary-dark: #FF6B9D;
+  --secondary-color: #DA70D6;
+  --secondary-light: #E88FD8;
+  --accent-color: #26C6DA;
+  
+  --bg-color: #121212;
+  --bg-secondary: #1E1E1E;
+  --text-color: #E0E0E0;
+  --text-light: #B0B0B0;
+  --border-color: #2C2C2C;
+  --header-bg: #1A1A1A;
+  --header-text: #E0E0E0;
+  --header-border: #2C2C2C;
+  
+  /* 透明版本背景色 */
+  --bg-color-transparent: rgba(18, 18, 18, 0.88);
+  --bg-secondary-transparent: rgba(30, 30, 30, 0.92);
+  --header-bg-transparent: rgba(26, 26, 26, 0.95);
+  
+  /* 浅透明版本（让形状可见） */
+  --bg-light: rgba(18, 18, 18, 0.4);
+  --bg-secondary-light: rgba(30, 30, 30, 0.65);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}

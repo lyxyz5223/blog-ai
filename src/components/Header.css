@@ -1,0 +1,111 @@
+.header {
+  background: var(--header-bg-transparent);
+  color: var(--header-text);
+  padding: 0.9rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  sticky: top;
+  z-index: 100;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--header-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-weight: 600;
+}
+
+.logo h1:hover {
+  opacity: 0.9;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  color: var(--header-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+  background-color: var(--primary-color);
+  background-color: rgba(233, 30, 99, 0.08);
+}
+
+.nav-link.active {
+  color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+  background-size: 100% 100%;
+  color: white;
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--primary-color);
+  border-radius: 50%;
+}
+
+.theme-toggle {
+  font-size: 1.2rem;
+  padding: 0.3rem 0.6rem;
+  margin-left: 0.5rem;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  color: white;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #ff5252, #ff3838);
+  color: white;
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+  .header-container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .nav {
+    gap: 1rem;
+  }
+
+  .logo h1 {
+    font-size: 1.4rem;
+  }
+}

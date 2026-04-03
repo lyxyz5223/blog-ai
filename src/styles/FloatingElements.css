@@ -1,0 +1,225 @@
+/* ★ 动漫简约风鼠标样式 */
+:root {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><defs><filter id="shadow"><feGaussianBlur in="SourceGraphic" stdDeviation="1.2"/><feOffset dx="0" dy="1.5" result="offsetblur"/><feFlood flood-color="%23FF6B9D" flood-opacity="0.4" result="offsetcolor"/><feComposite in="offsetcolor" in2="offsetblur" operator="in" result="offsetblur"/><feComposite in="offsetblur" in2="SourceGraphic" operator="in" result="color"/><feMerge><feMergeNode in="color"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="14" cy="14" r="8" fill="white" stroke="%23FF6B9D" stroke-width="2.5" filter="url(%23shadow)"/></svg>') 14 14, auto;
+}
+
+/* 鼠标悬停时的样式-放大并添加光晕 */
+button:hover,
+a:hover,
+.floating-element:hover,
+input:hover,
+[role="button"]:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><filter id="shadow2"><feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/><feOffset dx="0" dy="2" result="offsetblur"/><feFlood flood-color="%23FF6B9D" flood-opacity="0.5" result="offsetcolor"/><feComposite in="offsetcolor" in2="offsetblur" operator="in" result="offsetblur"/><feComposite in="offsetblur" in2="SourceGraphic" operator="in" result="color"/><feMerge><feMergeNode in="offsetblur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="16" cy="16" r="9" fill="none" stroke="%23FF6B9D" stroke-width="1.5" opacity="0.4"/><circle cx="16" cy="16" r="7" fill="white" stroke="%23FF6B9D" stroke-width="2.5" filter="url(%23shadow2)"/></svg>') 16 16, auto;
+}
+
+/* 漂浮容器 */
+.floating-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+/* 基础漂浮元素样式 */
+.floating-element {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.6;
+  mix-blend-mode: normal;
+  transform: translate3d(var(--mouse-x, 0px), var(--mouse-y, 0px), var(--depth, 0px));
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.floating-element:hover {
+  opacity: 0.75;
+}
+
+/* 形状基础样式 */
+.floating-shape {
+  position: relative;
+  isolation: isolate;
+  animation:
+    floatSmooth var(--float-duration, 9s) ease-in-out var(--float-delay, 0s) infinite,
+    swaySmooth var(--sway-duration, 6s) ease-in-out var(--float-delay, 0s) infinite;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  box-shadow: 0 var(--shadow-lift, 14px) 24px rgba(24, 24, 24, calc(var(--shadow-alpha, 0.12) * 0.8));
+}
+
+.floating-shape::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 2px);
+  width: 68%;
+  height: 22%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 20, 20, calc(var(--shadow-alpha, 0.12) * 0.6)) 0%, rgba(20, 20, 20, 0) 72%);
+  filter: blur(6px);
+  z-index: -1;
+  animation: shadowBreath var(--float-duration, 9s) ease-in-out var(--float-delay, 0s) infinite;
+}
+
+.shape-circle {
+  border-radius: 50%;
+  background: var(--color, #007bff);
+}
+
+.shape-square {
+  background: var(--color, #28a745);
+  border-radius: 12%;
+}
+
+.shape-triangle {
+  width: 0;
+  height: 0;
+  background: transparent !important;
+  opacity: 0.9;
+}
+
+.shape-triangle::after {
+  width: calc(var(--triangle-base, 120px) * 0.7);
+  height: 16px;
+}
+
+/* 漂浮动画 */
+@keyframes floatSmooth {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotateX(calc(var(--tilt-x, 6deg) * -0.25)) rotateY(calc(var(--tilt-y, 8deg) * -0.3)) scale(0.97);
+  }
+  25% {
+    transform: translate3d(var(--drift-x, 10px), calc(var(--drift-y, 20px) * -0.55), calc(var(--lift-z, 28px) * 0.7)) rotateX(var(--tilt-x, 6deg)) rotateY(calc(var(--tilt-y, 8deg) * -0.45)) scale(1.02);
+  }
+  50% {
+    transform: translate3d(0, calc(var(--drift-y, 20px) * -1), var(--lift-z, 28px)) rotateX(calc(var(--tilt-x, 6deg) * 0.45)) rotateY(var(--tilt-y, 8deg)) scale(1.04);
+  }
+  75% {
+    transform: translate3d(calc(var(--drift-x, 10px) * -1), calc(var(--drift-y, 20px) * -0.55), calc(var(--lift-z, 28px) * 0.55)) rotateX(calc(var(--tilt-x, 6deg) * -0.4)) rotateY(calc(var(--tilt-y, 8deg) * 0.4)) scale(1.01);
+  }
+}
+
+@keyframes swaySmooth {
+  0%, 100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shadowBreath {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateX(-50%) scale(0.72);
+    opacity: 0.28;
+  }
+}
+
+/* 颜色变化动画 */
+@keyframes colorShift {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(10deg);
+  }
+  100% {
+    filter: hue-rotate(0deg);
+  }
+}
+
+/* ========== 点击效果 ========== */
+
+/* 扩展涟漪效果 */
+.click-ripple {
+  position: fixed;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.ripple-expand {
+  border: 2px solid rgba(255, 107, 157, 0.6);
+  border-radius: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%) scale(0.1);
+  animation: ripple-expand 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes ripple-expand {
+  from {
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 1;
+    border-color: rgba(255, 107, 157, 0.8);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+    border-color: rgba(255, 107, 157, 0.1);
+  }
+}
+
+/* 脉冲涟漪效果 */
+.ripple-pulse {
+  border: 3px solid rgba(255, 165, 0, 0.7);
+  border-radius: 50%;
+  width: 350px;
+  height: 350px;
+  transform: translate(-50%, -50%) scale(0.1143);
+  animation: ripple-pulse 0.8s ease-out;
+}
+
+@keyframes ripple-pulse {
+  from {
+    transform: translate(-50%, -50%) scale(0.1143);
+    opacity: 1;
+    border-color: rgba(255, 165, 0, 0.8);
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.6);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+    border-color: rgba(255, 165, 0, 0.1);
+    box-shadow: 0 0 30px rgba(255, 165, 0, 0);
+  }
+}
+
+/* 彩色粒子效果 */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: particle-fly 0.8s ease-out forwards;
+}
+
+@keyframes particle-fly {
+  from {
+    opacity: 0.8;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(var(--vx) * 60px), calc(var(--vy) * 60px)) scale(0);
+  }
+}
+
+/* 页面滚动时保持效果 */
+@media (max-width: 768px) {
+  .floating-shape {
+    filter: drop-shadow(0 8px 14px rgba(24, 24, 24, 0.1));
+  }
+}
