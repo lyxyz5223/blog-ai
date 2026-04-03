@@ -1,9 +1,13 @@
-import { blogsData as localBlogsData } from './blogsData';
+import { blogsData as localBlogsData, loadBlogsData } from './blogsData';
 import { loadConfig, isUsingLocalStorage, getApiEndpoint } from '../config/config';
 
 // 文章缓存系统 - 保存已加载的完整文章内容
 const articleCache = new Map();
 const CACHE_SIZE = 10; // 保持最多10篇文章的缓存
+
+// 文件系统博客数据缓存
+let fileBlogsDataCache = null;
+let fileBlogsDataLoading = false;
 
 /**
  * 添加文章到缓存（LRU缓存策略）
@@ -57,9 +61,26 @@ const clearAllCache = () => {
 /**
  * 获取博客列表数据（只包含摘要，不包含完整内容）- 支持本地存储和数据库切换
  * 注意：这个方法只用于获取列表，获取完整内容请使用 getBlogDetail()
+ * 优先级：MD 文件 > 本地存储 > API
  */
 export const getBlogsData = async () => {
   try {
+    // 首先尝试从 MD 文件加载
+    try {
+      const fileBlogs = await loadFileBasedBlogs();
+      return fileBlogs.map(blog => ({
+        id: blog.id,
+        title: blog.title,
+        category: blog.category,
+        datetime: blog.datetime,
+        date: blog.datetime,
+        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+        author: blog.author
+      }));
+    } catch (fileError) {
+      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
+    }
+
     const config = await loadConfig();
     
     if (config.useLocalStorage) {
@@ -96,12 +117,37 @@ export const getBlogsData = async () => {
 /**
  * 获取分页的博客数据（不包含完整内容，用于列表显示）
  * 优化：直接使用后端分页 API，避免加载全部数据
+ * 优先级：MD 文件 > 本地存储 > API
  * @param {number} page - 页码（从1开始）
  * @param {number} pageSize - 每页数量
  * @returns {Promise<{items: Array, total: number, page: number, pageSize: number, totalPages: number}>}
  */
 export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
   try {
+    // 首先尝试从 MD 文件加载
+    try {
+      const allBlogs = await loadFileBasedBlogs();
+      const blogsForList = allBlogs.map(blog => ({
+        id: blog.id,
+        title: blog.title,
+        category: blog.category,
+        datetime: blog.datetime || blog.date,
+        date: blog.datetime || blog.date,
+        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+        author: blog.author
+      }));
+
+      const total = blogsForList.length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const items = blogsForList.slice(startIndex, endIndex);
+      
+      return { items, total, page, pageSize, totalPages };
+    } catch (fileError) {
+      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
+    }
+
     const config = await loadConfig();
     
     if (config.useLocalStorage) {
@@ -144,9 +190,18 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
 /**
  * 获取所有分类（优化版本）
  * 直接从后端获取，而不是加载全部数据来提取分类
+ * 优先级：MD 文件 > 本地存储 > API
  */
 export const getCategories = async () => {
   try {
+    // 首先尝试从 MD 文件加载
+    try {
+      const blogs = await loadFileBasedBlogs();
+      return [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
+    } catch (fileError) {
+      console.warn('Failed to load categories from MD files, falling back to config mode:', fileError);
+    }
+
     const config = await loadConfig();
     
     if (config.useLocalStorage) {
@@ -185,6 +240,20 @@ export const getBlogDetail = async (id) => {
   }
 
   try {
+    // 首先尝试从 MD 文件加载
+    try {
+      const blogs = await loadFileBasedBlogs();
+      const blog = blogs.find(b => b.id === id);
+      
+      if (blog) {
+        addToCache(id, blog);
+        console.log(`💾 [缓存新增] 文章ID: ${id}（MD文件模式）`);
+        return blog;
+      }
+    } catch (fileError) {
+      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
+    }
+
     const config = await loadConfig();
     
     if (config.useLocalStorage) {
@@ -220,9 +289,48 @@ export const getBlogDetail = async (id) => {
 };
 
 /**
+ * 从 MD 文件系统加载博客数据（异步）
+ * 这是新的加载方式，将博客内容存储在 public/blogs 目录下
+ */
+export const loadFileBasedBlogs = async () => {
+  // 如果已经加载过，直接返回缓存
+  if (fileBlogsDataCache) {
+    return fileBlogsDataCache;
+  }
+  
+  // 如果正在加载，等待加载完成
+  if (fileBlogsDataLoading) {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (fileBlogsDataCache) {
+          clearInterval(checkInterval);
+          resolve(fileBlogsDataCache);
+        }
+      }, 100);
+    });
+  }
+
+  fileBlogsDataLoading = true;
+  try {
+    const blogs = await loadBlogsData();
+    fileBlogsDataCache = blogs;
+    fileBlogsDataLoading = false;
+    return blogs;
+  } catch (error) {
+    fileBlogsDataLoading = false;
+    console.error('Failed to load file-based blogs:', error);
+    throw error;
+  }
+};
+
+/**
  * 获取本地博客数据
+ * 现在支持从 MD 文件系统或内存数据加载
  */
 export const getLocalBlogsData = () => {
+  if (fileBlogsDataCache) {
+    return fileBlogsDataCache;
+  }
   return [...localBlogsData];
 };
 
