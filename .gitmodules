@@ -1,0 +1,3 @@
+[submodule "server"]
+	path = server
+	url = https://github.com/lyxyz5223/blog-ai-server
