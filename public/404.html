@@ -14,9 +14,14 @@
       const baseUrl = '/blog-ai/';
       
       // Remove the base URL to get the relative path
-      const relativePath = path.startsWith(baseUrl) 
+      let relativePath = path.startsWith(baseUrl) 
         ? path.slice(baseUrl.length) 
         : path;
+      
+      // Normalize: remove leading slashes which will be added back in main.jsx
+      while (relativePath.startsWith('/')) {
+        relativePath = relativePath.slice(1);
+      }
       
       // Mark this as an invalid route so React can show NotFound page
       sessionStorage.setItem('redirectPath', relativePath + (window.location.search || '') + (window.location.hash || ''));

@@ -12,14 +12,14 @@ if (sessionStorage.redirectPath) {
   delete sessionStorage.redirectPath;
   
   // Restore the original path
+  // 404.html already removed base URL and leading slashes, so we can directly concatenate
   const basePath = '/blog-ai/';
-  // Remove leading slash if present to avoid double slashes when concatenating
-  const cleanPath = redirectPath.startsWith('/') ? redirectPath.slice(1) : redirectPath;
+  const finalPath = basePath + redirectPath;
   
-  console.log(`🔄 [SPA Router] 恢复路由: ${cleanPath}`);
-  console.log(`   若路由不存在，将显示 NotFound 页面`);
+  console.log(`🔄 [SPA Router] 恢复路由: ${redirectPath}`);
+  console.log(`   完整路径: ${finalPath}`);
   
-  window.history.replaceState(null, null, basePath + cleanPath);
+  window.history.replaceState(null, null, finalPath);
 }
 
 createRoot(document.getElementById('root')).render(
