@@ -1,13 +1,9 @@
-import { blogsData as localBlogsData, loadBlogsData } from './blogsData';
+import { blogsData as localBlogsData, loadBlogsMeta, loadBlogContent } from './blogsData';
 import { loadConfig, isUsingLocalStorage, getApiEndpoint } from '../config/config';
 
 // 文章缓存系统 - 保存已加载的完整文章内容
 const articleCache = new Map();
 const CACHE_SIZE = 10; // 保持最多10篇文章的缓存
-
-// 文件系统博客数据缓存
-let fileBlogsDataCache = null;
-let fileBlogsDataLoading = false;
 
 /**
  * 添加文章到缓存（LRU缓存策略）
@@ -115,26 +111,27 @@ export const getBlogsData = async () => {
 };
 
 /**
- * 获取分页的博客数据（不包含完整内容，用于列表显示）
- * 优化：直接使用后端分页 API，避免加载全部数据
- * 优先级：MD 文件 > 本地存储 > API
+ * 获取分页的博客数据（只包含元数据，不包含完整内容，用于列表显示）
+ * ✨ 优化：使用懒加载 - 列表页只加载元数据，详情页才加载完整内容
+ * 优先级：MD 文件（元数据） > 本地存储 > API
  * @param {number} page - 页码（从1开始）
  * @param {number} pageSize - 每页数量
  * @returns {Promise<{items: Array, total: number, page: number, pageSize: number, totalPages: number}>}
  */
 export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
   try {
-    // 首先尝试从 MD 文件加载
+    // 首先尝试从 MD 文件加载元数据（只加载元数据，不加载内容）
     try {
-      const allBlogs = await loadFileBasedBlogs();
-      const blogsForList = allBlogs.map(blog => ({
+      const allBlogsMeta = await loadBlogsMeta();
+      const blogsForList = allBlogsMeta.map(blog => ({
         id: blog.id,
         title: blog.title,
         category: blog.category,
         datetime: blog.datetime || blog.date,
         date: blog.datetime || blog.date,
-        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
-        author: blog.author
+        excerpt: blog.excerpt || '点击查看文章',
+        author: blog.author,
+        filename: blog.filename  // 用于后续加载内容
       }));
 
       const total = blogsForList.length;
@@ -143,6 +140,7 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
       const endIndex = startIndex + pageSize;
       const items = blogsForList.slice(startIndex, endIndex);
       
+      console.log(`📄 [getPaginatedBlogs] 从MD文件加载第 ${page} 页，共 ${total} 篇`);
       return { items, total, page, pageSize, totalPages };
     } catch (fileError) {
       console.warn('Failed to load from MD files, falling back to config mode:', fileError);
@@ -159,7 +157,7 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
         category: blog.category,
         datetime: blog.datetime || blog.date,
         date: blog.datetime || blog.date,
-        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
         author: blog.author
       }));
 
@@ -169,6 +167,7 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
       const endIndex = startIndex + pageSize;
       const items = blogsForList.slice(startIndex, endIndex);
       
+      console.log(`📄 [getPaginatedBlogs] 从本地数据加载第 ${page} 页，共 ${total} 篇`);
       return { items, total, page, pageSize, totalPages };
     } else {
       // API 模式：使用后端分页 API（推荐大数据量使用）
@@ -179,25 +178,28 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
         throw new Error(`API request failed with status ${response.status}`);
       }
       
-      return await response.json();
+      const result = await response.json();
+      console.log(`📄 [getPaginatedBlogs] 从API加载第 ${page} 页`);
+      return result;
     }
   } catch (error) {
-    console.error('Error getting paginated blogs:', error);
+    console.error('❌ [getPaginatedBlogs] 加载失败:', error);
     throw error;
   }
 };
 
 /**
- * 获取所有分类（优化版本）
- * 直接从后端获取，而不是加载全部数据来提取分类
+ * 获取所有分类（只需加载元数据）
  * 优先级：MD 文件 > 本地存储 > API
  */
 export const getCategories = async () => {
   try {
-    // 首先尝试从 MD 文件加载
+    // 首先尝试从 MD 文件加载元数据
     try {
-      const blogs = await loadFileBasedBlogs();
-      return [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
+      const blogsMeta = await loadBlogsMeta();
+      const categories = [...new Set(blogsMeta.map(blog => blog.category).filter(Boolean))];
+      console.log(`📂 [getCategories] 从MD文件加载 ${categories.length} 个分类`);
+      return categories;
     } catch (fileError) {
       console.warn('Failed to load categories from MD files, falling back to config mode:', fileError);
     }
@@ -207,7 +209,9 @@ export const getCategories = async () => {
     if (config.useLocalStorage) {
       // 本地数据模式
       const blogs = getLocalBlogsData();
-      return [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
+      const categories = [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
+      console.log(`📂 [getCategories] 从本地数据加载 ${categories.length} 个分类`);
+      return categories;
     } else {
       // API 模式：使用专门的分类 API
       const apiEndpoint = getApiEndpoint();
@@ -217,17 +221,20 @@ export const getCategories = async () => {
         throw new Error(`API request failed with status ${response.status}`);
       }
       
-      return await response.json();
+      const categories = await response.json();
+      console.log(`📂 [getCategories] 从API加载 ${categories.length} 个分类`);
+      return categories;
     }
   } catch (error) {
-    console.error('Error getting categories:', error);
+    console.error('❌ [getCategories] 加载失败:', error);
     throw error;
   }
 };
 
 /**
- * 获取单篇博客的完整内容（包含缓存）- 优化版本
- * 改为直接根据 ID 获取，而非加载所有博客后再查找
+ * 获取单篇博客的完整内容（懒加载）
+ * ✨ 优化：详情页才加载完整内容，支持LRU缓存
+ * 优先级：MD 文件（懒加载） > 本地存储 > API
  * @param {number} id - 博客ID
  * @returns {Promise<Object>} 完整的博客对象
  */
@@ -240,12 +247,16 @@ export const getBlogDetail = async (id) => {
   }
 
   try {
-    // 首先尝试从 MD 文件加载
+    // 首先尝试从 MD 文件加载（懒加载单篇文件）
     try {
-      const blogs = await loadFileBasedBlogs();
-      const blog = blogs.find(b => b.id === id);
+      const blogsMeta = await loadBlogsMeta();
+      const blogMeta = blogsMeta.find(b => b.id === id);
       
-      if (blog) {
+      if (blogMeta) {
+        console.log(`📖 [详情页] 加载文章ID: ${id}（懒加载）`);
+        // 只在需要详情时才加载内容
+        const content = await loadBlogContent(blogMeta.filename);
+        const blog = { ...blogMeta, content };
         addToCache(id, blog);
         console.log(`💾 [缓存新增] 文章ID: ${id}（MD文件模式）`);
         return blog;
@@ -283,44 +294,18 @@ export const getBlogDetail = async (id) => {
     
     throw new Error(`文章 ID ${id} 不存在`);
   } catch (error) {
-    console.error('Error getting blog detail:', error);
+    console.error('❌ [getBlogDetail] 加载失败，ID:', id, '错误:', error);
     throw error;
   }
 };
 
 /**
- * 从 MD 文件系统加载博客数据（异步）
- * 这是新的加载方式，将博客内容存储在 public/blogs 目录下
+ * 从 MD 文件系统加载博客元数据（异步）
+ * ✨ 已重构为懒加载模式 - 只加载元数据，内容在需要时加载
  */
 export const loadFileBasedBlogs = async () => {
-  // 如果已经加载过，直接返回缓存
-  if (fileBlogsDataCache) {
-    return fileBlogsDataCache;
-  }
-  
-  // 如果正在加载，等待加载完成
-  if (fileBlogsDataLoading) {
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (fileBlogsDataCache) {
-          clearInterval(checkInterval);
-          resolve(fileBlogsDataCache);
-        }
-      }, 100);
-    });
-  }
-
-  fileBlogsDataLoading = true;
-  try {
-    const blogs = await loadBlogsData();
-    fileBlogsDataCache = blogs;
-    fileBlogsDataLoading = false;
-    return blogs;
-  } catch (error) {
-    fileBlogsDataLoading = false;
-    console.error('Failed to load file-based blogs:', error);
-    throw error;
-  }
+  // 直接返回元数据，内容通过懒加载获取
+  return await loadBlogsMeta();
 };
 
 /**
@@ -328,9 +313,6 @@ export const loadFileBasedBlogs = async () => {
  * 现在支持从 MD 文件系统或内存数据加载
  */
 export const getLocalBlogsData = () => {
-  if (fileBlogsDataCache) {
-    return fileBlogsDataCache;
-  }
   return [...localBlogsData];
 };
 
