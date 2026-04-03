@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router'
+import { isUsingLocalStorage } from './config/config'
 import './App.css'
 import Header from './components/Header'
 import FloatingElements from './components/FloatingElements'
@@ -10,6 +11,7 @@ import BlogList from './pages/BlogList'
 import BlogDetail from './pages/BlogDetail'
 import About from './pages/About'
 import Admin from './pages/Admin'
+import NotFound from './pages/NotFound'
 
 function AppRouter() {
   const [theme, setTheme] = useState(() => {
@@ -64,21 +66,30 @@ function AppRouter() {
           <Route 
             path="/login" 
             element={
-              <Login 
-                isAuthenticated={isAuthenticated}
-                onLoginSuccess={handleLoginSuccess}
-              />
+              !isUsingLocalStorage() ? (
+                <Login 
+                  isAuthenticated={isAuthenticated}
+                  onLoginSuccess={handleLoginSuccess}
+                />
+              ) : (
+                <NotFound />
+              )
             } 
           />
           <Route
             path="/admin"
             element={
-              <ProtectedRoute 
-                isAuthenticated={isAuthenticated}
-                component={Admin}
-              />
+              !isUsingLocalStorage() ? (
+                <ProtectedRoute 
+                  isAuthenticated={isAuthenticated}
+                  component={Admin}
+                />
+              ) : (
+                <NotFound />
+              )
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
 
       </div>

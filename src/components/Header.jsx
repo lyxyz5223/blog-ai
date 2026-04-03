@@ -1,4 +1,5 @@
 import { useLocation, Link, useNavigate } from 'react-router'
+import { isUsingLocalStorage } from '../config/config'
 import './Header.css'
 
 function Header({ theme, onToggleTheme, isAuthenticated, onLogout }) {
@@ -39,7 +40,7 @@ function Header({ theme, onToggleTheme, isAuthenticated, onLogout }) {
           >
             关于我
           </Link>
-          {isAuthenticated ? (
+          {!isUsingLocalStorage() && isAuthenticated ? (
             <>
               <Link 
                 to="/admin" 
@@ -56,15 +57,7 @@ function Header({ theme, onToggleTheme, isAuthenticated, onLogout }) {
                 🚪 登出
               </button>
             </>
-          ) : (
-            <Link 
-              to="/login" 
-              className={`nav-link ${isActive('/login')}`}
-              title="管理员登录"
-            >
-              🔐 登录
-            </Link>
-          )}
+          ) : null}
           <button 
             className="nav-link theme-toggle"
             onClick={onToggleTheme}

@@ -94,18 +94,21 @@ function About() {
           <div className="contact-info">
             <p>如果你有任何问题或建议，欢迎通过以下方式联系我：</p>
             <div className="contact-links">
-              <a href="mailto:example@email.com" className="contact-link">
-                📧 email@example.com
+              <a href="mailto:lyxyz5223@qq.com" className="contact-link">
+                📧<br/>lyxyz5223@qq.com
               </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="contact-link">
-                🐙 GitHub
+              <a href="https://github.com/lyxyz5223" target="_blank" rel="noopener noreferrer" className="contact-link">
+                🐙<br/>GitHub
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="contact-link">
-                🐦 Twitter
+              <a href="https://cnblogs.com/lyxyz5223" target="_blank" rel="noopener noreferrer" className="contact-link">
+                🎨<br/>博客园
+              </a>
+              {/* <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="contact-link">
+                🐦<br/>Twitter
               </a>
               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="contact-link">
-                💼 LinkedIn
-              </a>
+                💼<br/>LinkedIn
+              </a> */}
             </div>
           </div>
         </section>

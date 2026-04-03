@@ -7,7 +7,7 @@ export const loadConfig = async () => {
   // 从环境变量读取配置
   config = {
     useLocalStorage: import.meta.env.VITE_USE_LOCAL_STORAGE === 'true',
-    apiEndpoint: import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000/api'
+    apiEndpoint: import.meta.env.VITE_SERVER_API_ENDPOINT || 'http://localhost:5000/api'
   };
 
   return config;

@@ -11,7 +11,7 @@
 #### 新增文件
 - **`.env.local`** - 前端本地开发环境变量
   ```
-  VITE_API_ENDPOINT=http://localhost:9876/api
+  VITE_SERVER_API_ENDPOINT=http://localhost:9876/api
   VITE_USE_LOCAL_STORAGE=false
   ```
 
@@ -22,14 +22,14 @@
 
 - **`src/config/config.js`** - 改为从 `import.meta.env` 读取前端环境变量
   - ✅ 移除 fetch 'config.json' 的逻辑
-  - ✅ 使用 Vite 环境变量 `VITE_API_ENDPOINT` 和 `VITE_USE_LOCAL_STORAGE`
+  - ✅ 使用 Vite 环境变量 `VITE_SERVER_API_ENDPOINT` 和 `VITE_USE_LOCAL_STORAGE`
   - ✅ 保留原有API接口不变
 
 #### 配置变量映射
 
 | 原配置 (config.json) | 新配置 (.env.local) | 说明 |
 |---|---|---|
-| `apiEndpoint` | `VITE_API_ENDPOINT` | API 服务器地址 |
+| `apiEndpoint` | `VITE_SERVER_API_ENDPOINT` | API 服务器地址 |
 | `useLocalStorage` | `VITE_USE_LOCAL_STORAGE` | 是否使用本地存储（JSON 文件存储） |
 
 ### 后端迁移 (Backend)
@@ -66,7 +66,7 @@
 
 2. **生产构建** - 创建 `.env.production`
    ```bash
-   VITE_API_ENDPOINT=https://api.example.com
+   VITE_SERVER_API_ENDPOINT=https://api.example.com
    VITE_USE_LOCAL_STORAGE=false
    ```
 
