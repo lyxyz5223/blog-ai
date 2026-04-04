@@ -11,6 +11,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { dracula, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { getBlogDetail, getBlogsData } from '../data/dataService'
 import { formatDateTime } from '../utils/formatDate'
+import GitHubComments from '../components/GitHubComments'
 import './BlogDetail.css'
 
 // 图片加载组件 - 支持错误处理和懒加载
@@ -67,7 +68,10 @@ function BlogDetail({ blogId }) {
   const [nextBlog, setNextBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [theme, setTheme] = useState('light')
+  // 从 DOM 获取初始主题值，而不是默认为 'light'
+  const [theme, setTheme] = useState(() => {
+    return document.documentElement.getAttribute('data-theme') || 'light'
+  })
   const [showScrollButtons, setShowScrollButtons] = useState(false)
   const [isAtTop, setIsAtTop] = useState(true)
 
@@ -309,6 +313,16 @@ function BlogDetail({ blogId }) {
           </ReactMarkdown>
         </div>
       </article>
+
+      {/* GitHub 评论部分 */}
+      <section className="blog-comments-section">
+        <h2 className="comments-title">评论</h2>
+        <GitHubComments 
+          blogId={blog.id} 
+          blogTitle={blog.title}
+          theme={theme}
+        />
+      </section>
 
       <div className="article-footer">
         <div className="article-navigation">

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: var(--bg-color-transparent);
+  background-color: rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   padding: 0;
   border: 1px solid #e0e0e0;
@@ -10,6 +10,8 @@
   width: 100%;
   min-width: 0;
   position: relative;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .markdown-editor-wrapper.fullscreen-active {
@@ -23,9 +25,11 @@
   max-width: 100%;
   border-radius: 0;
   z-index: 9999;
-  background-color: var(--bg-secondary-transparent);
+  background-color: rgba(30, 41, 59, 0.3);
   border: none;
   padding: 0;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .markdown-editor-wrapper.fullscreen-active .md-editor {
@@ -378,4 +382,107 @@
 .markdown-preview .katex-display .katex {
   display: inline-block;
   text-align: left;
+}
+
+/* 深色模式样式 */
+[data-theme="dark"] .markdown-editor-wrapper {
+  background-color: rgba(30, 41, 59, 0.3);
+  border-color: #444;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .CodeMirror {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .CodeMirror-gutters {
+  background-color: #2d2d2d;
+  border-right-color: #444;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .CodeMirror-linenumber {
+  color: #666;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .CodeMirror-cursor {
+  border-left-color: #e0e0e0;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .CodeMirror-selected {
+  background-color: #404040;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-toolbar {
+  background-color: #2d2d2d;
+  border-bottom-color: #444;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-toolbar button {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-toolbar button:hover,
+[data-theme="dark"] .markdown-editor-wrapper .editor-toolbar button.active {
+  background-color: #404040;
+  color: #4a9eff;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-preview,
+[data-theme="dark"] .markdown-editor-wrapper .editor-preview-side {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-preview-side {
+  border-left-color: #444;
+}
+
+[data-theme="dark"] .markdown-editor-wrapper .editor-statusbar {
+  background-color: #2d2d2d;
+  border-top-color: #444;
+  color: #999;
+}
+
+[data-theme="dark"] .markdown-preview code {
+  background-color: #2d2d2d;
+  color: #ff7b72;
+}
+
+[data-theme="dark"] .markdown-preview pre {
+  background-color: #1e1e1e;
+  border-left-color: #4a9eff;
+}
+
+[data-theme="dark"] .markdown-preview pre code {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .markdown-preview blockquote {
+  border-left-color: #555;
+  color: #aaa;
+}
+
+[data-theme="dark"] .markdown-preview a {
+  color: #4a9eff;
+}
+
+[data-theme="dark"] .markdown-preview a:hover {
+  color: #6bb3ff;
+}
+
+[data-theme="dark"] .markdown-preview table th,
+[data-theme="dark"] .markdown-preview table td {
+  border-color: #444;
+}
+
+[data-theme="dark"] .markdown-preview table th {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .markdown-preview table tr:nth-child(even) {
+  background-color: #252525;
+}
+
+[data-theme="dark"] .markdown-preview h1 {
+  border-bottom-color: #444;
 }
