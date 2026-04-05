@@ -4,6 +4,7 @@ import { isUsingLocalStorage } from './config/config'
 import './App.css'
 import Header from './components/Header'
 import FloatingElements from './components/FloatingElements'
+import FloatingMusicPlayer from './components/FloatingMusicPlayer'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Home from './pages/Home'
@@ -48,6 +49,7 @@ function AppRouter() {
     <Router basename="/blog-ai/">
       <div className="app">
         <FloatingElements />
+        <FloatingMusicPlayer />
         
         <Header 
           theme={theme} 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { getPaginatedBlogs } from '../data/dataService'
 import { formatDateTime } from '../utils/formatDate'
+import DailyQuote from '../components/DailyQuote'
 import './Home.css'
 
 function Home() {
@@ -40,6 +41,8 @@ function Home() {
           </Link>
         </div>
       </section>
+
+      <DailyQuote />
 
       <section className="featured-posts">
         <div className="section-container">

@@ -65,6 +65,32 @@
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+.daily-quote {
+  max-width: 900px;
+  margin: 2rem auto 0;
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.daily-quote-label {
+  margin: 0;
+  font-size: 1.25rem;
+  color: darkkhaki;
+}
+
+.daily-quote-text {
+  margin: 0.8rem 0 0;
+  font-size: 1.7rem;
+  color: #ff7b00;
+  line-height: 1.35;
+}
+
+.daily-quote-from {
+  margin: 0.6rem 0 0;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
 .featured-posts .loading,
 .featured-posts .error-message {
   padding: 2rem;
@@ -274,5 +300,9 @@
 
   .posts-grid {
     grid-template-columns: 1fr;
+  }
+
+  .daily-quote-text {
+    font-size: 1.25rem;
   }
 }
