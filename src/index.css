@@ -16,6 +16,7 @@
   --bg-color: #FAFAFA;
   --bg-secondary: #FFFFFF66;
   --text-color: #2C3E50;
+  --text-secondary: #6B7A89;
   --text-light: #7F8C8D;
   --border-color: #E8E8E8;
   --header-bg: #FFFFFF;
@@ -29,6 +30,20 @@
   /* 浅透明版本（让形状可见） */
   --bg-light: rgba(250, 250, 250, 0.4);
   --bg-secondary-light: rgba(255, 255, 255, 0.65);
+
+  --status-info: #3B82F6;
+  --status-info-soft: rgba(59, 130, 246, 0.12);
+  --status-info-border: rgba(59, 130, 246, 0.35);
+  --status-danger: #EF4444;
+  --status-danger-hover: #DC2626;
+  --status-danger-soft: rgba(239, 68, 68, 0.12);
+  --status-danger-border: rgba(239, 68, 68, 0.35);
+  --status-success: #10B981;
+  --status-success-hover: #059669;
+
+  --panel-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --scrollbar-thumb: #b9bec6;
+  --scrollbar-thumb-hover: #9199a5;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -48,6 +63,7 @@
   --bg-color: #121212;
   --bg-secondary: #1E1E1E;
   --text-color: #E0E0E0;
+  --text-secondary: #A6AFB9;
   --text-light: #B0B0B0;
   --border-color: #2C2C2C;
   --header-bg: #1A1A1A;
@@ -62,6 +78,20 @@
   /* 浅透明版本（让形状可见） */
   --bg-light: rgba(18, 18, 18, 0.4);
   --bg-secondary-light: rgba(30, 30, 30, 0.65);
+
+  --status-info: #6EA8FE;
+  --status-info-soft: rgba(110, 168, 254, 0.16);
+  --status-info-border: rgba(110, 168, 254, 0.42);
+  --status-danger: #FF6B6B;
+  --status-danger-hover: #FF5252;
+  --status-danger-soft: rgba(255, 107, 107, 0.16);
+  --status-danger-border: rgba(255, 107, 107, 0.42);
+  --status-success: #34D399;
+  --status-success-hover: #10B981;
+
+  --panel-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  --scrollbar-thumb: #5b6471;
+  --scrollbar-thumb-hover: #737d8b;
 }
 
 html, body {
@@ -69,6 +99,29 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
+}
+
+/* 全局主滚动条（页面级） */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 body {

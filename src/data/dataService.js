@@ -1,5 +1,5 @@
 import { blogsData as localBlogsData, loadBlogsMeta, loadBlogContent } from './blogsData';
-import { loadConfig, isUsingLocalStorage, getApiEndpoint } from '../config/config';
+import { loadConfig, getApiEndpoint } from '../config/config';
 
 // 文章缓存系统 - 保存已加载的完整文章内容
 const articleCache = new Map();
@@ -61,25 +61,25 @@ const clearAllCache = () => {
  */
 export const getBlogsData = async () => {
   try {
-    // 首先尝试从 MD 文件加载
-    try {
-      const fileBlogs = await loadFileBasedBlogs();
-      return fileBlogs.map(blog => ({
-        id: blog.id,
-        title: blog.title,
-        category: blog.category,
-        datetime: blog.datetime,
-        date: blog.datetime,
-        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
-        author: blog.author
-      }));
-    } catch (fileError) {
-      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
-    }
-
     const config = await loadConfig();
-    
+
     if (config.useLocalStorage) {
+      // 本地模式优先从 MD 文件加载，失败后回退到内存数据
+      try {
+        const fileBlogs = await loadFileBasedBlogs();
+        return fileBlogs.map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          category: blog.category,
+          datetime: blog.datetime,
+          date: blog.datetime,
+          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+          author: blog.author
+        }));
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
       // 使用本地数据 - 创建只包含摘要的列表
       return getLocalBlogsData().map(blog => ({
         id: blog.id,
@@ -120,36 +120,36 @@ export const getBlogsData = async () => {
  */
 export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
   try {
-    // 首先尝试从 MD 文件加载元数据（只加载元数据，不加载内容）
-    try {
-      const allBlogsMeta = await loadBlogsMeta();
-      const blogsForList = allBlogsMeta.map(blog => ({
-        id: blog.id,
-        title: blog.title,
-        category: blog.category,
-        datetime: blog.datetime || blog.date,
-        date: blog.datetime || blog.date,
-        excerpt: blog.excerpt || '点击查看文章',
-        author: blog.author,
-        filename: blog.filename  // 用于后续加载内容
-      }));
-
-      const total = blogsForList.length;
-      const totalPages = Math.ceil(total / pageSize);
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const items = blogsForList.slice(startIndex, endIndex);
-      
-      console.log(`📄 [getPaginatedBlogs] 从MD文件加载第 ${page} 页，共 ${total} 篇`);
-      return { items, total, page, pageSize, totalPages };
-    } catch (fileError) {
-      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
-    }
-
     const config = await loadConfig();
-    
+
     if (config.useLocalStorage) {
-      // 本地数据模式：从本地数据进行分页处理
+      // 本地模式优先从 MD 文件加载元数据
+      try {
+        const allBlogsMeta = await loadBlogsMeta();
+        const blogsForList = allBlogsMeta.map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          category: blog.category,
+          datetime: blog.datetime || blog.date,
+          date: blog.datetime || blog.date,
+          excerpt: blog.excerpt || '点击查看文章',
+          author: blog.author,
+          filename: blog.filename
+        }));
+
+        const total = blogsForList.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const items = blogsForList.slice(startIndex, endIndex);
+
+        console.log(`📄 [getPaginatedBlogs] 从MD文件加载第 ${page} 页，共 ${total} 篇`);
+        return { items, total, page, pageSize, totalPages };
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
+      // 本地数据模式：从内存数据进行分页处理
       const allBlogs = getLocalBlogsData();
       const blogsForList = allBlogs.map(blog => ({
         id: blog.id,
@@ -166,7 +166,7 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
       const startIndex = (page - 1) * pageSize;
       const endIndex = startIndex + pageSize;
       const items = blogsForList.slice(startIndex, endIndex);
-      
+
       console.log(`📄 [getPaginatedBlogs] 从本地数据加载第 ${page} 页，共 ${total} 篇`);
       return { items, total, page, pageSize, totalPages };
     } else {
@@ -194,19 +194,19 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
  */
 export const getCategories = async () => {
   try {
-    // 首先尝试从 MD 文件加载元数据
-    try {
-      const blogsMeta = await loadBlogsMeta();
-      const categories = [...new Set(blogsMeta.map(blog => blog.category).filter(Boolean))];
-      console.log(`📂 [getCategories] 从MD文件加载 ${categories.length} 个分类`);
-      return categories;
-    } catch (fileError) {
-      console.warn('Failed to load categories from MD files, falling back to config mode:', fileError);
-    }
-
     const config = await loadConfig();
-    
+
     if (config.useLocalStorage) {
+      // 本地模式优先使用 MD 元数据
+      try {
+        const blogsMeta = await loadBlogsMeta();
+        const categories = [...new Set(blogsMeta.map(blog => blog.category).filter(Boolean))];
+        console.log(`📂 [getCategories] 从MD文件加载 ${categories.length} 个分类`);
+        return categories;
+      } catch (fileError) {
+        console.warn('Failed to load categories from MD files, falling back to local data mode:', fileError);
+      }
+
       // 本地数据模式
       const blogs = getLocalBlogsData();
       const categories = [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
@@ -247,27 +247,26 @@ export const getBlogDetail = async (id) => {
   }
 
   try {
-    // 首先尝试从 MD 文件加载（懒加载单篇文件）
-    try {
-      const blogsMeta = await loadBlogsMeta();
-      const blogMeta = blogsMeta.find(b => b.id === id);
-      
-      if (blogMeta) {
-        console.log(`📖 [详情页] 加载文章ID: ${id}（懒加载）`);
-        // 只在需要详情时才加载内容
-        const content = await loadBlogContent(blogMeta.filename);
-        const blog = { ...blogMeta, content };
-        addToCache(id, blog);
-        console.log(`💾 [缓存新增] 文章ID: ${id}（MD文件模式）`);
-        return blog;
-      }
-    } catch (fileError) {
-      console.warn('Failed to load from MD files, falling back to config mode:', fileError);
-    }
-
     const config = await loadConfig();
-    
+
     if (config.useLocalStorage) {
+      // 本地模式优先从 MD 文件懒加载详情
+      try {
+        const blogsMeta = await loadBlogsMeta();
+        const blogMeta = blogsMeta.find(b => b.id === id);
+
+        if (blogMeta) {
+          console.log(`📖 [详情页] 加载文章ID: ${id}（懒加载）`);
+          const content = await loadBlogContent(blogMeta.filename);
+          const blog = { ...blogMeta, content };
+          addToCache(id, blog);
+          console.log(`💾 [缓存新增] 文章ID: ${id}（MD文件模式）`);
+          return blog;
+        }
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
       // 本地模式：从本地数据查找
       const blogs = getLocalBlogsData();
       const blog = blogs.find(b => b.id === id);

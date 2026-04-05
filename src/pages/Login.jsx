@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { loadConfig, getApiEndpoint } from '../config/config'
 import './Login.css'
 
 function Login({ isAuthenticated, onLoginSuccess }) {
@@ -15,7 +16,8 @@ function Login({ isAuthenticated, onLoginSuccess }) {
     setError('')
 
     try {
-      const apiEndpoint = localStorage.getItem('apiEndpoint') || 'http://localhost:5000/api'
+      await loadConfig()
+      const apiEndpoint = getApiEndpoint()
       const response = await fetch(`${apiEndpoint}/auth/login`, {
         method: 'POST',
         headers: {

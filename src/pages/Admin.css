@@ -63,7 +63,7 @@
   padding: 0.5rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-light);
   transition: all 0.3s ease;
 }
 
@@ -86,7 +86,7 @@
 
 .db-endpoint {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-light);
   margin-left: 0.5rem;
   opacity: 0.8;
 }
@@ -101,21 +101,21 @@
 }
 
 .admin-loading {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background-color: var(--status-info-soft);
+  color: var(--status-info);
+  border: 1px solid var(--status-info-border);
 }
 
 .admin-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--status-danger-soft);
+  color: var(--status-danger);
+  border: 1px solid var(--status-danger-border);
 }
 
 .empty-list {
   padding: 2rem 0;
   text-align: center;
-  color: #999;
+  color: var(--text-light);
   font-style: italic;
 }
 
@@ -157,21 +157,21 @@
 }
 
 .btn-success {
-  background-color: #10B981;
+  background-color: var(--status-success);
   color: white;
 }
 
 .btn-success:hover {
-  background-color: #059669;
+  background-color: var(--status-success-hover);
 }
 
 .btn-danger {
-  background-color: #EF4444;
+  background-color: var(--status-danger);
   color: white;
 }
 
 .btn-danger:hover {
-  background-color: #DC2626;
+  background-color: var(--status-danger-hover);
 }
 
 .admin-container {
@@ -187,7 +187,7 @@
   background: var(--bg-secondary-transparent);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--panel-shadow);
   height: fit-content;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
@@ -270,9 +270,30 @@
   background: var(--bg-secondary-transparent);
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--panel-shadow);
   max-height: calc(100vh - 200px);
   overflow-y: auto;
+}
+
+.admin-list::-webkit-scrollbar,
+.admin-editor::-webkit-scrollbar {
+  width: 9px;
+}
+
+.admin-list::-webkit-scrollbar-track,
+.admin-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-list::-webkit-scrollbar-thumb,
+.admin-editor::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.admin-list::-webkit-scrollbar-thumb:hover,
+.admin-editor::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .empty-state {
@@ -280,7 +301,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  color: #999;
+  color: var(--text-light);
   font-size: 1.1rem;
 }
 
@@ -305,24 +326,25 @@
 
 .form-group label {
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .form-group input,
 .form-group textarea {
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.95rem;
-  background-color: #fafafa;
+  background-color: var(--bg-secondary-light);
+  color: var(--text-color);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #666;
-  box-shadow: 0 0 0 3px rgba(100, 100, 100, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.14);
 }
 
 /* Markdown 编辑器样式调整 */
@@ -350,7 +372,7 @@
   justify-content: flex-end;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .form-actions .btn {
