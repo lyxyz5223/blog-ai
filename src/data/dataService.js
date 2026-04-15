@@ -200,7 +200,16 @@ export const getCategories = async () => {
       // 本地模式优先使用 MD 元数据
       try {
         const blogsMeta = await loadBlogsMeta();
-        const categories = [...new Set(blogsMeta.map(blog => blog.category).filter(Boolean))];
+        // 计算每个分类的计数
+        const categoryMap = {};
+        blogsMeta.forEach(blog => {
+          if (blog.category) {
+            categoryMap[blog.category] = (categoryMap[blog.category] || 0) + 1;
+          }
+        });
+        const categories = Object.entries(categoryMap)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => a.name.localeCompare(b.name));
         console.log(`📂 [getCategories] 从MD文件加载 ${categories.length} 个分类`);
         return categories;
       } catch (fileError) {
@@ -209,7 +218,16 @@ export const getCategories = async () => {
 
       // 本地数据模式
       const blogs = getLocalBlogsData();
-      const categories = [...new Set(blogs.map(blog => blog.category).filter(Boolean))];
+      // 计算每个分类的计数
+      const categoryMap = {};
+      blogs.forEach(blog => {
+        if (blog.category) {
+          categoryMap[blog.category] = (categoryMap[blog.category] || 0) + 1;
+        }
+      });
+      const categories = Object.entries(categoryMap)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name));
       console.log(`📂 [getCategories] 从本地数据加载 ${categories.length} 个分类`);
       return categories;
     } else {
@@ -294,6 +312,264 @@ export const getBlogDetail = async (id) => {
     throw new Error(`文章 ID ${id} 不存在`);
   } catch (error) {
     console.error('❌ [getBlogDetail] 加载失败，ID:', id, '错误:', error);
+    throw error;
+  }
+};
+
+/**
+ * 按分类获取分页博客数据（新增功能）
+ * 优先级：本地数据 > API
+ * @param {string} category - 分类名称
+ * @param {number} page - 页码（从1开始）
+ * @param {number} pageSize - 每页数量，默认10
+ * @returns {Promise<Object>} 分页数据 {items, total, page, pageSize, totalPages}
+ */
+export const getPaginatedBlogsByCategory = async (category, page = 1, pageSize = 10) => {
+  try {
+    const config = await loadConfig();
+
+    if (config.useLocalStorage) {
+      // 本地模式：从本地数据进行分页处理
+      try {
+        const blogsMeta = await loadBlogsMeta();
+        const blogsForList = blogsMeta
+          .filter(blog => blog.category === category)
+          .map(blog => ({
+            id: blog.id,
+            title: blog.title,
+            category: blog.category,
+            datetime: blog.datetime || blog.date,
+            date: blog.datetime || blog.date,
+            excerpt: blog.excerpt || '点击查看文章',
+            author: blog.author
+          }));
+
+        const total = blogsForList.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const items = blogsForList.slice(startIndex, endIndex);
+
+        console.log(`📄 [getPaginatedBlogsByCategory] 从MD文件加载分类 '${category}' 第 ${page} 页，共 ${total} 篇`);
+        return { items, total, page, pageSize, totalPages };
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
+      // 本地数据模式：从内存数据进行分页处理
+      const allBlogs = getLocalBlogsData();
+      const blogsForList = allBlogs
+        .filter(blog => blog.category === category)
+        .map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          category: blog.category,
+          datetime: blog.datetime || blog.date,
+          date: blog.datetime || blog.date,
+          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          author: blog.author
+        }));
+
+      const total = blogsForList.length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const items = blogsForList.slice(startIndex, endIndex);
+
+      console.log(`📄 [getPaginatedBlogsByCategory] 从本地数据加载分类 '${category}' 第 ${page} 页，共 ${total} 篇`);
+      return { items, total, page, pageSize, totalPages };
+    } else {
+      // API 模式：使用后端分类筛选 API
+      const apiEndpoint = getApiEndpoint();
+      const response = await fetch(`${apiEndpoint}/blogs/category/${encodeURIComponent(category)}/page/${page}?limit=${pageSize}`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log(`📄 [getPaginatedBlogsByCategory] 从API加载分类 '${category}' 第 ${page} 页`);
+      return result;
+    }
+  } catch (error) {
+    console.error('❌ [getPaginatedBlogsByCategory] 加载失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 按多个分类获取分页博客数据
+ * 优先级：本地数据 > API
+ * @param {string[]} categories - 分类名称数组
+ * @param {number} page - 页码（从1开始）
+ * @param {number} pageSize - 每页数量，默认10
+ * @returns {Promise<Object>} 分页数据 {items, total, page, pageSize, totalPages}
+ */
+export const getPaginatedBlogsByCategories = async (categories, page = 1, pageSize = 10) => {
+  try {
+    if (!categories || categories.length === 0) {
+      throw new Error('至少需要选择一个分类');
+    }
+
+    const config = await loadConfig();
+
+    if (config.useLocalStorage) {
+      // 本地模式：从本地数据进行多分类筛选和分页处理
+      try {
+        const blogsMeta = await loadBlogsMeta();
+        const blogsForList = blogsMeta
+          .filter(blog => categories.includes(blog.category))
+          .map(blog => ({
+            id: blog.id,
+            title: blog.title,
+            category: blog.category,
+            datetime: blog.datetime || blog.date,
+            date: blog.datetime || blog.date,
+            excerpt: blog.excerpt || '点击查看文章',
+            author: blog.author
+          }));
+
+        const total = blogsForList.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const items = blogsForList.slice(startIndex, endIndex);
+
+        console.log(`📄 [getPaginatedBlogsByCategories] 从MD文件加载分类 [${categories.join(', ')}] 第 ${page} 页，共 ${total} 篇`);
+        return { items, total, page, pageSize, totalPages };
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
+      // 本地数据模式：从内存数据进行多分类筛选和分页处理
+      const allBlogs = getLocalBlogsData();
+      const blogsForList = allBlogs
+        .filter(blog => categories.includes(blog.category))
+        .map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          category: blog.category,
+          datetime: blog.datetime || blog.date,
+          date: blog.datetime || blog.date,
+          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          author: blog.author
+        }));
+
+      const total = blogsForList.length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const items = blogsForList.slice(startIndex, endIndex);
+
+      console.log(`📄 [getPaginatedBlogsByCategories] 从本地数据加载分类 [${categories.join(', ')}] 第 ${page} 页，共 ${total} 篇`);
+      return { items, total, page, pageSize, totalPages };
+    } else {
+      // API 模式：使用后端多分类筛选 API
+      const apiEndpoint = getApiEndpoint();
+      const queryParams = categories.map(c => `categories=${encodeURIComponent(c)}`).join('&');
+      const response = await fetch(`${apiEndpoint}/blogs/categories/page/${page}?${queryParams}&limit=${pageSize}`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log(`📄 [getPaginatedBlogsByCategories] 从API加载分类 [${categories.join(', ')}] 第 ${page} 页`);
+      return result;
+    }
+  } catch (error) {
+    console.error('❌ [getPaginatedBlogsByCategories] 加载失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 搜索博客
+ * 优先级：本地数据 > API
+ * @param {string} keyword - 搜索关键词
+ * @param {number} page - 页码（从1开始）
+ * @param {number} pageSize - 每页数量，默认10
+ * @returns {Promise<Object>} 分页数据 {items, total, page, pageSize, totalPages}
+ */
+export const searchBlogs = async (keyword, page = 1, pageSize = 10) => {
+  try {
+    if (!keyword.trim()) {
+      throw new Error('搜索关键词不能为空');
+    }
+
+    const config = await loadConfig();
+
+    if (config.useLocalStorage) {
+      // 本地模式：从本地数据进行搜索和分页
+      try {
+        const blogsMeta = await loadBlogsMeta();
+        const blogsForList = blogsMeta
+          .filter(blog => 
+            blog.title.toLowerCase().includes(keyword.toLowerCase()) ||
+            blog.excerpt.toLowerCase().includes(keyword.toLowerCase())
+          )
+          .map(blog => ({
+            id: blog.id,
+            title: blog.title,
+            category: blog.category,
+            datetime: blog.datetime || blog.date,
+            date: blog.datetime || blog.date,
+            excerpt: blog.excerpt || '点击查看文章',
+            author: blog.author
+          }));
+
+        const total = blogsForList.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const items = blogsForList.slice(startIndex, endIndex);
+
+        console.log(`🔍 [searchBlogs] 从MD文件搜索关键词 '${keyword}' 第 ${page} 页，共 ${total} 篇`);
+        return { items, total, page, pageSize, totalPages, keyword };
+      } catch (fileError) {
+        console.warn('Failed to load from MD files, falling back to local data mode:', fileError);
+      }
+
+      // 本地数据模式：从内存数据进行搜索和分页
+      const allBlogs = getLocalBlogsData();
+      const blogsForList = allBlogs
+        .filter(blog => 
+          blog.title.toLowerCase().includes(keyword.toLowerCase()) ||
+          (blog.excerpt || '').toLowerCase().includes(keyword.toLowerCase())
+        )
+        .map(blog => ({
+          id: blog.id,
+          title: blog.title,
+          category: blog.category,
+          datetime: blog.datetime || blog.date,
+          date: blog.datetime || blog.date,
+          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          author: blog.author
+        }));
+
+      const total = blogsForList.length;
+      const totalPages = Math.ceil(total / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const items = blogsForList.slice(startIndex, endIndex);
+
+      console.log(`🔍 [searchBlogs] 从本地数据搜索关键词 '${keyword}' 第 ${page} 页，共 ${total} 篇`);
+      return { items, total, page, pageSize, totalPages, keyword };
+    } else {
+      // API 模式：使用后端搜索 API
+      const apiEndpoint = getApiEndpoint();
+      const response = await fetch(`${apiEndpoint}/blogs/search?keyword=${encodeURIComponent(keyword)}&page=${page}&limit=${pageSize}`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log(`🔍 [searchBlogs] 从API搜索关键词 '${keyword}' 第 ${page} 页`);
+      return result;
+    }
+  } catch (error) {
+    console.error('❌ [searchBlogs] 搜索失败:', error);
     throw error;
   }
 };

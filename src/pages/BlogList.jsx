@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router'
-import { getPaginatedBlogs, getCategories } from '../data/dataService'
+import { getPaginatedBlogs, getCategories, getPaginatedBlogsByCategory, getPaginatedBlogsByCategories, searchBlogs } from '../data/dataService'
 import { formatDateTime } from '../utils/formatDate'
 import './BlogList.css'
 
@@ -15,9 +15,10 @@ function BlogList() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedCategories, setSelectedCategories] = useState([])  // 改为数组支持多选
   const [searchTerm, setSearchTerm] = useState('')
   const [inputValue, setInputValue] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
 
   // 合并加载：分页数据 + 分类（减少网络请求）
   useEffect(() => {
@@ -25,11 +26,23 @@ function BlogList() {
       try {
         setLoading(true)
         
-        // 并行加载两个数据，而不是顺序加载
-        const [blogsResult, categoriesResult] = await Promise.all([
-          getPaginatedBlogs(currentPage, ITEMS_PER_PAGE),
-          getCategories()
-        ])
+        // 并行加载分类和博客数据
+        const categoriesResult = await getCategories()
+        
+        let blogsResult;
+        if (isSearching && searchTerm.trim()) {
+          // 如果正在搜索，调用搜索 API
+          blogsResult = await searchBlogs(searchTerm, currentPage, ITEMS_PER_PAGE)
+        } else if (selectedCategories.length > 1) {
+          // 如果选择多个分类，调用多分类查询
+          blogsResult = await getPaginatedBlogsByCategories(selectedCategories, currentPage, ITEMS_PER_PAGE)
+        } else if (selectedCategories.length === 1) {
+          // 如果选择一个分类，调用单分类查询
+          blogsResult = await getPaginatedBlogsByCategory(selectedCategories[0], currentPage, ITEMS_PER_PAGE)
+        } else {
+          // 否则获取全部数据
+          blogsResult = await getPaginatedBlogs(currentPage, ITEMS_PER_PAGE)
+        }
         
         console.log(`📖 [BlogList] 加载第 ${currentPage} 页数据:`, blogsResult)
         console.log('📂 [BlogList] 加载的分类:', categoriesResult)
@@ -48,14 +61,10 @@ function BlogList() {
     }
 
     loadData()
-  }, [currentPage])
+  }, [currentPage, selectedCategories, searchTerm, isSearching])
 
-  const filteredBlogs = (blogsData?.items || []).filter(blog => {
-    const matchCategory = !selectedCategory || blog.category === selectedCategory
-    const matchSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                       blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchCategory && matchSearch
-  })
+  // 后端已经处理了所有过滤，直接使用 items
+  const filteredBlogs = blogsData?.items || []
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= (blogsData?.totalPages || 1)) {
@@ -147,12 +156,24 @@ function BlogList() {
                 placeholder="搜索文章..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && setSearchTerm(inputValue)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && inputValue.trim()) {
+                    setSearchTerm(inputValue)
+                    setIsSearching(true)
+                    navigate('/blogs')
+                  }
+                }}
                 className="search-input"
               />
               <button
                 className="search-btn"
-                onClick={() => setSearchTerm(inputValue)}
+                onClick={() => {
+                  if (inputValue.trim()) {
+                    setSearchTerm(inputValue)
+                    setIsSearching(true)
+                    navigate('/blogs')
+                  }
+                }}
                 title="搜索"
               >
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
@@ -163,20 +184,53 @@ function BlogList() {
             </div>
 
             <div className="filters">
+              {isSearching && searchTerm && (
+                <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: 'rgba(233, 30, 99, 0.1)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>🔍 搜索: <strong>{searchTerm}</strong> (共 {blogsData?.total || 0} 篇)</span>
+                  <button
+                    onClick={() => {
+                      setSearchTerm('')
+                      setInputValue('')
+                      setIsSearching(false)
+                      navigate('/blogs')
+                    }}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    清除
+                  </button>
+                </div>
+              )}
               <div className="category-buttons">
                 <button
-                  className={`category-btn ${selectedCategory === null ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(null)}
+                  className={`category-btn ${selectedCategories.length === 0 && !isSearching ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedCategories([])
+                    setSearchTerm('')
+                    setInputValue('')
+                    setIsSearching(false)
+                    navigate('/blogs')
+                  }}
                 >
                   全部 ({blogsData?.total || 0})
                 </button>
                 {categories.map(category => (
                   <button
-                    key={category}
-                    className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(category)}
+                    key={category.name}
+                    className={`category-btn ${selectedCategories.includes(category.name) && !isSearching ? 'active' : ''}`}
+                    onClick={() => {
+                      // 切换选择/取消该分类
+                      if (selectedCategories.includes(category.name)) {
+                        setSelectedCategories(selectedCategories.filter(c => c !== category.name))
+                      } else {
+                        setSelectedCategories([...selectedCategories, category.name])
+                      }
+                      setSearchTerm('')
+                      setInputValue('')
+                      setIsSearching(false)
+                      navigate('/blogs')
+                    }}
                   >
-                    {category}
+                    {category.name} ({category.count})
                   </button>
                 ))}
               </div>
