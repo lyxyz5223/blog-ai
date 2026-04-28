@@ -63,6 +63,12 @@ export const getBlogsData = async () => {
   try {
     const config = await loadConfig();
 
+    const toExcerpt = (blog) => {
+      if (blog.excerpt) return blog.excerpt;
+      const snippet = typeof blog.content === 'string' ? blog.content.substring(0, 100) : '';
+      return snippet ? `${snippet}...` : '无摘要';
+    };
+
     if (config.useLocalStorage) {
       // 本地模式优先从 MD 文件加载，失败后回退到内存数据
       try {
@@ -73,7 +79,7 @@ export const getBlogsData = async () => {
           category: blog.category,
           datetime: blog.datetime,
           date: blog.datetime,
-          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+          excerpt: toExcerpt(blog),
           author: blog.author
         }));
       } catch (fileError) {
@@ -87,7 +93,7 @@ export const getBlogsData = async () => {
         category: blog.category,
         datetime: blog.datetime,
         date: blog.datetime,
-        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+        excerpt: toExcerpt(blog),
         author: blog.author
       }));
     } else {
@@ -104,7 +110,7 @@ export const getBlogsData = async () => {
       category: blog.category,
       datetime: blog.datetime,
       date: blog.datetime,
-      excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '无摘要',
+      excerpt: (blog.excerpt ? blog.excerpt : (typeof blog.content === 'string' && blog.content.substring(0, 100) ? `${blog.content.substring(0, 100)}...` : '无摘要')),
       author: blog.author
     }));
   }
@@ -157,7 +163,7 @@ export const getPaginatedBlogs = async (page = 1, pageSize = 10) => {
         category: blog.category,
         datetime: blog.datetime || blog.date,
         date: blog.datetime || blog.date,
-        excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+        excerpt: blog.excerpt || (typeof blog.content === 'string' && blog.content ? `${blog.content.substring(0, 100)}...` : '') || '点击查看文章',
         author: blog.author
       }));
 
@@ -366,7 +372,7 @@ export const getPaginatedBlogsByCategory = async (category, page = 1, pageSize =
           category: blog.category,
           datetime: blog.datetime || blog.date,
           date: blog.datetime || blog.date,
-          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          excerpt: blog.excerpt || (typeof blog.content === 'string' && blog.content ? `${blog.content.substring(0, 100)}...` : '') || '点击查看文章',
           author: blog.author
         }));
 
@@ -451,7 +457,7 @@ export const getPaginatedBlogsByCategories = async (categories, page = 1, pageSi
           category: blog.category,
           datetime: blog.datetime || blog.date,
           date: blog.datetime || blog.date,
-          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          excerpt: blog.excerpt || (typeof blog.content === 'string' && blog.content ? `${blog.content.substring(0, 100)}...` : '') || '点击查看文章',
           author: blog.author
         }));
 
@@ -543,7 +549,7 @@ export const searchBlogs = async (keyword, page = 1, pageSize = 10) => {
           category: blog.category,
           datetime: blog.datetime || blog.date,
           date: blog.datetime || blog.date,
-          excerpt: blog.excerpt || blog.content?.substring(0, 100) + '...' || '点击查看文章',
+          excerpt: blog.excerpt || (typeof blog.content === 'string' && blog.content ? `${blog.content.substring(0, 100)}...` : '') || '点击查看文章',
           author: blog.author
         }));
 

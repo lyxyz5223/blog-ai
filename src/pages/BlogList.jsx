@@ -41,7 +41,7 @@ function BlogList() {
           blogsResult = await getPaginatedBlogsByCategory(selectedCategories[0], currentPage, ITEMS_PER_PAGE)
         } else {
           // 否则获取全部数据
-          blogsResult = await getPaginatedBlogs(currentPage, ITEMS_PER_PAGE)
+          blogsResult  = await getPaginatedBlogs(currentPage, ITEMS_PER_PAGE)
         }
         
         console.log(`📖 [BlogList] 加载第 ${currentPage} 页数据:`, blogsResult)
@@ -66,12 +66,12 @@ function BlogList() {
   // 后端已经处理了所有过滤，直接使用 items
   const filteredBlogs = blogsData?.items || []
 
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= (blogsData?.totalPages || 1)) {
-      navigate(`/blogs/page/${newPage}`)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
+  // const handlePageChange = (newPage) => {
+  //   if (newPage >= 1 && newPage <= (blogsData?.totalPages || 1)) {
+  //     navigate(`/blogs/page/${newPage}`)
+  //     window.scrollTo({ top: 0, behavior: 'smooth' })
+  //   }
+  // }
 
   const renderPagination = () => {
     if (!blogsData || blogsData.totalPages <= 1) return null

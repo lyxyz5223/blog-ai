@@ -5,7 +5,7 @@ const APLAYER_CSS = 'https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css';
 const APLAYER_JS = 'https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js';
 const METING_JS = 'https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js';
 
-function ensureStyle(href, id) {
+export function ensureStyle(href, id) {
   if (document.getElementById(id)) return;
   const link = document.createElement('link');
   link.id = id;
@@ -14,7 +14,7 @@ function ensureStyle(href, id) {
   document.head.appendChild(link);
 }
 
-function ensureScript(src, id) {
+export function ensureScript(src, id) {
   return new Promise((resolve, reject) => {
     if (document.getElementById(id)) {
       resolve();
@@ -30,7 +30,7 @@ function ensureScript(src, id) {
   });
 }
 
-function clickPlayButton() {
+export function clickPlayButton() {
   const byClass = document.getElementsByClassName('aplayer-button aplayer-play')[0];
   if (byClass) {
     byClass.click();
@@ -45,15 +45,20 @@ function clickPlayButton() {
   return false;
 }
 
-export default function FloatingMusicPlayer() {
+export default function FloatingMusicPlayer({ forceRuntimeLoad = false }) {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
+    const isTestEnv = import.meta.env.MODE === 'test' && !forceRuntimeLoad;
 
     async function setup() {
       try {
+        if (isTestEnv) {
+          if (!cancelled) setReady(true);
+          return;
+        }
         ensureStyle(APLAYER_CSS, 'aplayer-css-cdn');
         await ensureScript(APLAYER_JS, 'aplayer-js-cdn');
         await ensureScript(METING_JS, 'meting-js-cdn');

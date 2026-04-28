@@ -8,14 +8,31 @@ import { useEffect, useRef } from 'react'
 export default function GitHubComments({ 
   blogId, 
   blogTitle,
-  theme = 'light' 
+  theme = 'light',
+  forceScriptMode = false,
 }) {
   const containerRef = useRef(null)
   const scriptLoadedRef = useRef(false)
   const firstLoadRef = useRef(true)
+  const isTestEnv = import.meta.env.MODE === 'test' && !forceScriptMode
 
   // 第一个 Effect: 仅在 blogId 变化或首次加载时加载 Giscus 脚本
   useEffect(() => {
+    if (isTestEnv) {
+      // 测试环境：首次加载时渲染占位，避免外部脚本；主题变化交给第二个 effect
+      if (scriptLoadedRef.current) return
+      if (containerRef.current) {
+        containerRef.current.innerHTML = ''
+        const placeholder = document.createElement('div')
+        placeholder.setAttribute('data-testid', 'giscus-test-placeholder')
+        placeholder.textContent = `giscus-disabled-in-test:${blogId}:${blogTitle || ''}:${theme}`
+        containerRef.current.appendChild(placeholder)
+        scriptLoadedRef.current = true
+        firstLoadRef.current = false
+      }
+      return
+    }
+
     // 防止重复加载
     if (scriptLoadedRef.current && !firstLoadRef.current) {
       return

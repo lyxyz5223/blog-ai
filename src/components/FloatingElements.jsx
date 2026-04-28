@@ -74,11 +74,13 @@ export default function FloatingElements() {
 
       // 取消之前的帧
       if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
+        if (typeof window.cancelAnimationFrame === 'function') {
+          window.cancelAnimationFrame(rafId.current);
+        }
       }
 
       // 使用 requestAnimationFrame 来批量更新
-      rafId.current = requestAnimationFrame(() => {
+      rafId.current = window.requestAnimationFrame(() => {
         updateElementsPosition();
         rafId.current = null;
       });
@@ -135,7 +137,9 @@ export default function FloatingElements() {
     return () => {
       // 清理 RAF
       if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
+        if (typeof window.cancelAnimationFrame === 'function') {
+          window.cancelAnimationFrame(rafId.current);
+        }
       }
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('click', handleClick);
