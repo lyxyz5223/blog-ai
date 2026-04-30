@@ -7,7 +7,7 @@ export default function FloatingElements() {
   const elementRefs = useRef([]);
   const [shapes, setShapes] = useState([]);
   const rafId = useRef(null);
-  const lastUpdateTime = useRef(0);
+  // const lastUpdateTime = useRef(0);
 
   const randomInRange = (min, max) => Math.random() * (max - min) + min;
 

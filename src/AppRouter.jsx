@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router'
+import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router'
 import { isUsingLocalStorage } from './config/config'
 import './App.css'
 import Header from './components/Header'

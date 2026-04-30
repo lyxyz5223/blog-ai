@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
@@ -62,7 +62,7 @@ function RenderImage({ src, alt, ...props }) {
 }
 
 function BlogDetail({ blogId }) {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const [blog, setBlog] = useState(null)
   const [prevBlog, setPrevBlog] = useState(null)
   const [nextBlog, setNextBlog] = useState(null)
@@ -127,7 +127,7 @@ function BlogDetail({ blogId }) {
 
   // 在函数内部创建 markdownComponents，以便访问 highlightStyle
   const markdownComponents = {
-    code({ node, inline, className, children, ...props }) {
+    code({ inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '')
       const language = match ? match[1] : 'javascript'
 
@@ -158,7 +158,7 @@ function BlogDetail({ blogId }) {
     h4: ({ children }) => <h4 className="markdown-h4">{children}</h4>,
     h5: ({ children }) => <h5 className="markdown-h5">{children}</h5>,
     h6: ({ children }) => <h6 className="markdown-h6">{children}</h6>,
-    p: ({ children, node }) => {
+    p: ({ children }) => {
       // 检查 children 是否包含块级元素（如已经包含 <p>, <div> 等）
       const hasBlockElements = Array.isArray(children) && children.some(child => 
         typeof child === 'object' && child?.props && 
